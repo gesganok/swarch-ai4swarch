@@ -38,15 +38,22 @@ evidence: system/online-boutique/protos/demo.proto, system/online-boutique/kuber
 
 | ผู้เรียก → ผู้ถูกเรียก | หลักฐานที่ AI อ้าง | ยืนยันแล้วหรือไม่ ✅ / ❌ / ❓ | สิ่งที่นิสิตพบ |
 |---|---|---|---|
-| | | | |
-| | | | |
-| | | | |
-| | | | |
-| | | | |
+| `checkoutservice` → `cartservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`CART_SERVICE_ADDR`) | ✅ | พบ `CART_SERVICE_ADDR` กำหนดค่าเป็น `cartservice:7070` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `cartservice` |
+| `checkoutservice` → `productcatalogservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`PRODUCT_CATALOG_SERVICE_ADDR`) | ✅ | พบ `PRODUCT_CATALOG_SERVICE_ADDR` กำหนดค่าเป็น `productcatalogservice:3550` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `productcatalogservice` |
+| `checkoutservice` → `shippingservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`SHIPPING_SERVICE_ADDR`) | ✅ | พบ `SHIPPING_SERVICE_ADDR` กำหนดค่าเป็น `shippingservice:50051` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `shippingservice` |
+| `checkoutservice` → `paymentservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`PAYMENT_SERVICE_ADDR`) | ✅ | พบ `PAYMENT_SERVICE_ADDR` กำหนดค่าเป็น `paymentservice:50051` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `paymentservice` |
+| `checkoutservice` → `currencyservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`CURRENCY_SERVICE_ADDR`) | ✅ | พบ `CURRENCY_SERVICE_ADDR` กำหนดค่าเป็น `currencyservice:7000` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `currencyservice` |
+| `checkoutservice` → `emailservice` | `system/online-boutique/kubernetes-manifests/checkoutservice.yaml` (`EMAIL_SERVICE_ADDR`) | ✅ | พบ `EMAIL_SERVICE_ADDR` กำหนดค่าเป็น `emailservice:5000` จึงยืนยันว่า `checkoutservice` ถูกตั้งค่าให้ติดต่อ `emailservice` |
 
-- **สิ่งที่ผิดหรือขาดหายไป** ใน Run B (dependency ที่ไม่มีจริง, dependency ที่ขาดไป, container ที่น่าสงสัย): …
+- **สิ่งที่ผิดหรือขาดหายไป** ใน Run B (dependency ที่ไม่มีจริง, dependency ที่ขาดไป, container ที่น่าสงสัย): ไม่พบ dependency ที่ผิดจากรายการที่ตรวจ
 
 ## สะท้อนคิด (ข้อละ 2–3 ประโยค)
 
 1. เปรียบเทียบ A กับ B: agent **ไม่สามารถ**รู้อะไรได้จากไฟล์ `.proto` เพียงไฟล์เดียว และเพราะเหตุใด
+
+   Run A อ่านเพียง `demo.proto` จึงรู้ว่าแต่ละ service มี RPC อะไร แต่ยังระบุไม่ได้ว่า service ใดเรียก service ใด หรือมี container และ data store ใดถูก deploy จริง  ส่วนRun B อ่านไฟล์ใน `system/online-boutique/kubernetes-manifests/` เพิ่ม จึงระบุ dependency ที่ตั้งค่าไว้จาก `*_SERVICE_ADDR` และพบ `redis-cart` (`exercise/outputs/1B-architecture.md`). แม้ทั้งสอง run จะใช้ model เดียวกัน และ `prompts/1-recover-architecture.md` เหมือนกัน หลักฐานที่ต่างกันก็ทำให้รายละเอียดสถาปัตยกรรมที่กู้คืนได้ต่างกัน.
+
 2. ข้อผิดพลาด**ข้อใดข้อหนึ่ง**ที่จะทำให้สมาชิกใหม่ของทีมเข้าใจผิดมากที่สุด หากเผยแพร่แผนภาพนี้โดยไม่ตรวจสอบ
+
+   จุดที่อาจทำให้สมาชิกใหม่เข้าใจผิดมากที่สุดคือการอ่านลูกศร 
+   ภาพ `Run B` มีลูกศรหลายเส้น สมาชิกใหม่อาจเข้าใจว่าบริการเหล่านี้เรียกกันทุกครั้งที่มีการใช้งาน แต่ไฟล์ตั้งค่าบอกเพียงว่าแต่ละบริการถูกตั้งค่าให้ติดต่อบริการใดได้ ยังไม่ได้บอกว่าเรียกกันเมื่อไร
